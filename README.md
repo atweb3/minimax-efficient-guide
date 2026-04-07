@@ -1,5 +1,3 @@
-# minimax-efficient-guide
-高性价比使用MiniMax的通用攻略 - 适用于自动化、AI产品开发
 # 📘 高性价比使用MiniMax通用攻略
 
 > 适用于：自动化搭建、AI产品开发、代码生成、配置编写等技术任务
