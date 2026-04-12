@@ -1,4 +1,4 @@
-# 📘 高性价比使用 MiniMax 通用攻略（2026-04-12 修订版）
+# 📘 高性价比使用 MiniMax 通用攻略（2026-04-12 修订版 v2.1）
 
 > 适用于：自动化搭建、AI产品开发、代码生成、配置编写等技术任务
 
@@ -105,7 +105,69 @@
 
 ---
 
-## 六、总结（更新版）
+## 六、协议仓库的健康自检（进阶）
+
+> **让规则文件本身保持可校验，从源头避免积分浪费。**
+
+如果你的规则仓库（如 `minimax-output-protocol` 或 `minimax-efficient-skill`）存在乱码、JSON 格式错误或测试失效，发给 MiniMax 的指令可能无效，导致反复消耗积分却得不到正确输出。
+
+### ✅ 健康自检清单（一键验证）
+
+在你的协议仓库中，请确保具备以下四项基础设施：
+
+| 项目 | 作用 | 快速验证命令 |
+|------|------|-------------|
+| **合法 JSON** | `rules.json` 可被解析 | `python -m json.tool config/rules.json` |
+| **最小测试套件** | 检查乱码、代码块围栏、关键字段 | `pytest -q` |
+| **`pytest.ini`** | 让 `pytest` 自动发现测试文件 | 文件存在即可 |
+| **`.gitignore`** | 忽略 `__pycache__`、`.pytest_cache` | 避免提交垃圾文件 |
+
+### 🧪 推荐的测试内容（`tests/validate_repo.py` 示例核心）
+
+```python
+def test_rules_json_valid():
+    import json
+    json.loads(Path("config/rules.json").read_text())
+
+def test_skill_md_has_key_phrases():
+    skill = Path("skill.md").read_text()
+    assert "✅ 技能已加载" in skill
+    assert "只输出代码块" in skill
+
+def test_examples_use_fenced_code_blocks():
+    for md in Path("examples").glob("*.md"):
+        content = md.read_text()
+        assert "```" in content, f"{md} 缺少代码块围栏"
+```
+
+### ⚙️ 极简配置 `pytest.ini`
+```ini
+[pytest]
+testpaths = tests
+python_files = validate_repo.py
+```
+
+### 🔁 可选：GitHub Actions 自动检查
+在 `.github/workflows/health.yml` 中添加：
+```yaml
+name: Repo Health Check
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: pip install pytest
+      - run: pytest -q
+      - run: python -m json.tool config/rules.json
+```
+
+**效果**：每次 push 自动验证规则仓库是否“健康”，防止因文档损坏导致的无效对话。
+
+---
+
+## 七、总结（更新版）
 
 > **MiniMax 是你的“代码打印机”，而不是“技术合伙人”。**  
 > 你提供精确的输入（错误日志 + 数据示例 + 当前代码），它输出精准的修复代码。  
@@ -118,8 +180,10 @@
 
 如果三个答案都是“是”，再提交任务。否则，先自己做基础排查。
 
+**进阶提醒**：定期对自己的协议仓库运行 `pytest -q` 和 `python -m json.tool config/rules.json`，确保“发给 AI 的规则本身没有损坏”。这是高性价比使用 AI 的最后一块拼图。
+
 ---
 
-**文档版本**：2.0（2026-04-12 修订）  
+**文档版本**：2.1（2026-04-12 修订，新增“协议仓库健康自检”章节）  
 **适用平台**：MiniMax 对话式 AI  
-**基于真实项目**：AI Builders Digest 完整复盘
+**基于真实项目**：AI Builders Digest 完整复盘 + 仓库优化实践
